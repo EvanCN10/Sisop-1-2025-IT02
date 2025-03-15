@@ -13,4 +13,3 @@ else
     echo "Invalid email or password!"
 fi
 EOF
-
