@@ -3,20 +3,21 @@
 # Soal 2
 0
 # Soal 3
-<pre>
+<pre><code>
 #!/bin/bash
-
 clear
+</code></pre>
 
+<pre><code>
 speak_to_me() {
     while true; do
         curl -s https://www.affirmations.dev | jq -r '.affirmation'
         sleep 1
     done
 }
-</pre>
+</code></pre>
 
-<pre>
+<pre><code>
 on_the_run() {
     panjang_total=50
     progress=0
@@ -27,9 +28,9 @@ on_the_run() {
     done
     echo -e "\nDone!"
 }
-</pre>
+</code></pre>
 
-<pre>
+<pre><code>
 time_display() {
     while true; do
         clear
@@ -38,9 +39,9 @@ time_display() {
         sleep 1
     done
 }
-</pre>
+</code></pre>
 
-<pre>
+<pre><code>
 money_matrix() {
     symbols="!@#$%"
     cols=$(tput cols)
@@ -55,9 +56,9 @@ money_matrix() {
         sleep 0.1
     done
 }
-</pre>
+</code></pre>
 
-<pre>
+<pre><code>
 brain_damage() {
     while true; do
         clear
@@ -65,8 +66,9 @@ brain_damage() {
         sleep 1
     done
 }
-</pre>
+</code></pre>
 
+<pre><code>
 case "$1" in
     --play=Speak\ to\ Me) speak_to_me ;;
     --play=On\ the\ Run) on_the_run ;;
@@ -79,4 +81,4 @@ case "$1" in
         exit 1
         ;;
 esac
-
+</code></pre>
