@@ -90,3 +90,162 @@ esac
 </code></pre>
 - Jika argumen sesuai dengan salah satu opsi (--play=Speak to Me, --play=On the Run, dll.), maka fungsi terkait (speak_to_me, on_the_run, dll.) akan dijalankan.
 - Jika argumen tidak cocok dengan opsi yang tersedia (* sebagai default), skrip akan menampilkan pesan penggunaan dan daftar opsi yang tersedia, lalu keluar dengan kode error (exit 1).
+
+# Soal 4
+<pre><code>
+    if [ ! -f "pokemon_usage.csv" ]; then
+    echo "Mengunduh dataset pokemon_usage.csv..."
+    wget -q "https://drive.usercontent.google.com/u/0/uc?id=1n-2n_ZOTMleqa8qZ2nB8ALAbGFyN4-LJ&export=download" -O pokemon_usage.csv
+fi
+</pre></code>
+Code ini digunkan untuk memastikan apakah file CSV sudah ada, dan apabila tidak ada maka Code ini akan mengunduh terlebih dahulu.
+- Mengecek apakah file pokemon_usage.csv sudah ada di direktori saat ini.
+- Jika tidak ada (! -f), maka akan mengunduh file tersebut menggunakan wget.
+- Opsi -q digunakan agar proses unduhan tidak menampilkan output di terminal.
+- File yang diunduh disimpan dengan nama pokemon_usage.csv.
+
+
+<pre><code>
+    if [ ! -f "pokemon_usage.csv" ]; then
+    echo "Error: Gagal mendownload pokemon_usage.csv! Periksa koneksi internet."
+    exit 1
+fi
+</pre></code>
+Code ini digunakan untuk memastikan bahwa file <pre>pokemon_usage.csv</pre> berhasil diunduh atau tidak.
+- Jika file pokemon_usage.csv masih belum ada setelah proses unduhan, maka ditampilkan pesan error.
+- Script dihentikan dengan exit 1 untuk mencegah eksekusi lebih lanjut.
+
+
+<pre><code>
+    if [ "$#" -lt 2 ]; then
+    echo "Error: no arguments provided"
+    echo "Use -h or --help for more information"
+    exit 1
+fi
+</code></pre>
+Code ini digunakan untuk mengecek jumlah argumen yang diberikan.
+- Mengecek apakah jumlah argumen ($#) yang diberikan kurang dari 2.
+- Jika ya, maka menampilkan pesan error dan menyarankan penggunaan opsi -h atau --help.
+- Script dihentikan dengan exit 1.
+
+
+<pre><code>
+    FILENAME=$1
+    COMMAND=$2
+</pre></code>
+Kode ini untuk menyimpan argumen pertama dan kedua ke variabel.
+- FILENAME menyimpan argumen pertama (nama file CSV).
+- COMMAND menyimpan argumen kedua (perintah yang diberikan).
+
+
+<pre><code>
+    case "$COMMAND" in
+    --info)
+        echo "Summary of $FILENAME"
+        HIGHEST_USAGE=$(awk -F',' 'NR > 1 {if ($2 > max) {max=$2; name=$1}} END {print name " with " max "%"}' "$FILENAME")
+        HIGHEST_RAW=$(awk -F',' 'NR > 1 {if ($3 > max) {max=$3; name=$1}} END {print name " with " max " uses"}' "$FILENAME")
+        echo "Highest Adjusted Usage:  $HIGHEST_USAGE"
+        echo "Highest Raw Usage:       $HIGHEST_RAW"
+        ;;
+</pre></code>
+Merupakan kode untuk menjawab soal 4A yang dimana ingin menampilkan ringkasan data Pokemon dengan command yang diakhiri (--info).
+- awk digunakan untuk mencari Pokémon dengan penggunaan tertinggi:
+    - Adjusted Usage (persentase tertinggi di kolom kedua).
+    - Raw Usage (jumlah penggunaan tertinggi di kolom ketiga).
+- Hasilnya ditampilkan di terminal.
+
+
+<pre><code>
+    --sort)
+        if [ -z "$3" ]; then
+            echo "Error: no sort column provided"
+            echo "Usage: ./pokemon_analysis.sh pokemon_usage.csv --sort <column>"
+            exit 1
+        fi
+        COLUMN=$3
+        echo "Sorting Pokémon by $COLUMN..."
+        head -n 1 "$FILENAME"
+        tail -n +2 "$FILENAME" | sort -t, -k2,2nr
+        ;;
+</pre></code>
+Merupakan kode untuk menjawab soal 4B yang dimana ingin mengurutkan pokemon berdasarkan kolom tertentu dengan command yang diakhiri (--sort).
+- Memeriksa apakah argumen kolom pengurutan ($3) disertakan. Jika tidak, ditampilkan error.
+- Menggunakan sort untuk mengurutkan Pokémon berdasarkan kolom yang diberikan.
+- head -n 1 digunakan untuk menampilkan header.
+- tail -n +2 digunakan untuk melewati header dan mengurutkan data berdasarkan kolom kedua dalam urutan menurun (descending) (-k2,2nr).
+
+
+<pre><code>
+        --grep)
+        if [ -z "$3" ]; then
+            echo "Error: no Pokémon name provided"
+            echo "Usage: ./pokemon_analysis.sh pokemon_usage.csv --grep <name>"
+            exit 1
+        fi
+        POKEMON_NAME=$3
+        echo "Searching for Pokémon '$POKEMON_NAME'..."
+        head -n 1 "$FILENAME"
+        grep -i "^$POKEMON_NAME" "$FILENAME" | sort -t, -k2,2nr
+        ;;
+</pre></code>
+Merupakan kode untuk menjawab soal 4C yang dimana ingin mencari pokemon berdasarkan nama dengan menggunakan command yang diakhiri (--grep).
+- Memeriksa apakah nama Pokémon ($3) diberikan, jika tidak, menampilkan error.
+- grep -i "^$POKEMON_NAME" digunakan untuk mencari Pokémon berdasarkan nama tanpa memperhatikan huruf besar/kecil (-i).
+- Hasil pencarian diurutkan berdasarkan penggunaan tertinggi.
+
+
+<pre><code>
+        --filter)
+        if [ -z "$3" ]; then
+            echo "Error: no filter option provided"
+            echo "Usage: ./pokemon_analysis.sh pokemon_usage.csv --filter <type>"
+            exit 1
+        fi
+        POKEMON_TYPE=$3
+        echo "Filtering Pokémon with Type '$POKEMON_TYPE'..."
+        head -n 1 "$FILENAME"
+        awk -F',' -v type="$POKEMON_TYPE" 'NR==1 || $4==type || $5==type' "$FILENAME" | sort -t, -k2,2nr
+        ;;
+</pre></code>
+Merupakan kode untuk menjawab soal 4D yang dimana ingin menyaring pokemon berdasarkan tipe tertentu dengan command yang diakhiri (--filter).
+- Memeriksa apakah tipe Pokémon ($3) diberikan, jika tidak, menampilkan error.
+- awk digunakan untuk menampilkan Pokémon yang memiliki tipe sesuai dengan kolom ke-4 atau ke-5 dalam CSV.
+- Hasilnya diurutkan berdasarkan penggunaan tertinggi.
+
+
+<pre><code>
+        -h|--help)
+        echo "============================"
+        echo "        HELP SCREEN         "
+        echo "============================"
+        echo ""
+        echo "        (¯\`·._.·Pokémon·._.·´¯)"
+        echo "         _______  "
+        echo "       /       \\  "
+        echo "      |  ●   ●  | "
+        echo "      |    ◇    | "
+        echo "       \\___^___/  "
+        echo ""
+        echo "Usage:"
+        echo "  ./pokemon_analysis.sh pokemon_usage.csv --info               # Menampilkan ringkasan data Pokémon"
+        echo "  ./pokemon_analysis.sh pokemon_usage.csv --sort <column>      # Mengurutkan Pokémon berdasarkan kolom tertentu"
+        echo "  ./pokemon_analysis.sh pokemon_usage.csv --grep <name>        # Mencari Pokémon berdasarkan nama"
+        echo "  ./pokemon_analysis.sh pokemon_usage.csv --filter <type>      # Menampilkan Pokémon berdasarkan tipe"
+        echo "  ./pokemon_analysis.sh -h / --help                            # Menampilkan help screen"
+        echo "============================"
+        ;;
+</pre></code>
+Merupakan kode untuk menjawab soal 4E dan 4F yang dimana diminta untuk menampilkan help screen dengan command yang diakhiri dengan (-h atau --help).
+- Menampilkan petunjuk penggunaan script dengan ASCII art Pokémon sebagai tambahan visual.
+
+
+<pre><code>
+        *)
+        echo "Error: Unknown command '$COMMAND'"
+        echo "Use -h or --help for more information"
+        exit 1
+        ;;
+esac
+</pre></code>
+Code yang digunakan untuk menangani perintah yang tidak valid.
+- Jika perintah yang diberikan tidak dikenali, maka menampilkan pesan error dan menyarankan penggunaan --help.
