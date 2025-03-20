@@ -1,12 +1,168 @@
 # Soal 1
 0
 # Soal 2
-0
+1. register.sh (Registrasi Player)
+   
+<pre><code>
+#!/bin/bash
+</code></pre>
+(#!/bin/bash) Menunjukkan bahwa skrip ini akan dijalankan menggunakan Bash.
+
+<pre><code>
+DB_FILE="/data/player.csv"
+</code></pre>
+Menentukan lokasi file database tempat semua "Player" akan disimpan.
+
+<pre><code>
+read -p "Enter email: " email
+read -p "Enter username: " username
+read -s -p "Enter password: " password
+</code></pre>
+read -p "..." variable : Membaca input pengguna.
+-s untuk password menyembunyikan input agar tidak terlihat di layar.
+
+<pre><code>
+echo
+</code></pre>
+menambahkan baris kosong untuk meningkatkan keterbacaan output di terminal.
+
+Validasi Email
+<pre><code>
+if ! [[ "$email" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
+    echo "Invalid email format!"; exit 1
+fi
+</code></pre>
+Memeriksa apakah format email valid menggunakan regular expression (regex):
+1. Harus mengandung @ dan .
+2. Domain email minimal memiliki dua huruf setelah titik (.com, .id, dll.).
+Jika tidak valid, program menampilkan "Invalid email format!" lalu keluar (exit 1).
+
+Validasi Password
+<pre><code>
+if [[ ${#password} -lt 8 || "$password" != *[a-z]* || "$password" != *[A-Z]* || "$password" != *[0-9]* ]]; then
+    echo "Password must be at least 8 characters, include uppercase, lowercase, and a number!"; exit 1
+fi
+</code></pre>
+if [[ ... ]] melakukan pengecekan kondisi:
+1. ${#password} -lt 8 -> Password harus minimal 8 karakter.
+2. "$password" != *[a-z]* -> Harus mengandung huruf kecil.
+3. "$password" != *[A-Z]* -> Harus mengandung huruf besar.
+4. "$password" != *[0-9]* -> Harus mengandung angka.
+Jika tidak memenuhi kriteria, tampilkan pesan error dan keluar.
+
+Cek Apakah Email Sudah Terdaftar
+<pre><code>
+if grep -q "^$email," "$DB_FILE"; then
+    echo "Email already registered!"; exit 1
+fi
+</code></pre>
+1. grep -q "^$email," "$DB_FILE"  Mencari apakah email sudah ada di database (player.csv).
+2. ^ menandakan pencarian dari awal baris.
+3. Jika sudah ada, program menampilkan "Email already registered!" lalu keluar.
+
+Hashing Password dan Menyimpan ke Database
+<pre><code>
+echo "$email,$username,$(echo -n "$password:salt123" | sha256sum | awk '{print $1}')" >> "$DB_FILE"
+</code></pre>
+Hashing password menggunakan SHA-256 dengan static salt (salt123):
+1. echo -n "$password:salt123" | sha256sum | awk '{print $1}'
+2. -n mencegah tambahan newline.
+3. sha256sum mengenkripsi password.
+4. awk '{print $1}' hanya mengambil hash (tanpa tanda - tambahan).
+
+<pre><code>
+email,username,hashed_password
+</code></pre>
+Format penyimpanan ke database
+
+<pre><code>
+>> "$DB_FILE" 
+</code></pre>
+Menambahkan data ke akhir file tanpa menghapus data lama.
+
+<pre><code>
+echo "Registration successful!"
+</code></pre>
+Memberi konfirmasi bahwa registrasi berhasil.
+
+
+2. login.sh (Login Player)
+<pre><code>
+#!/bin/bash
+</code></pre>
+menandakan bahwa ini adalah skrip Bash.
+
+<pre><code>
+DB_FILE="/data/player.csv"
+</code></pre>
+Menentukan lokasi file database.
+
+<pre><code>
+read -p "Enter email: " email
+read -s -p "Enter password: " password
+</code></pre>
+Meminta pengguna memasukkan email dan password.
+-s menyembunyikan input password.
+
+<pre><code>
+echo
+</code></pre>
+Menambahkan baris kosong untuk tampilan yang lebih rapi.
+
+<pre><code>
+hashed_password=$(echo -n "$password:salt123" | sha256sum | awk '{print $1}')
+</code></pre>
+Hashing password input dengan metode yang sama seperti saat registrasi.
+
+Cek Kredensial di Database
+<pre><code>
+if grep -q "^$email,.*,$hashed_password$" "$DB_FILE"; then
+    echo "Login successful!"
+else
+    echo "Invalid email or password!"
+fi
+</code></pre>
+grep -q "^$email,.*,$hashed_password$" "$DB_FILE":
+1. Mencari email yang cocok.
+2. .* mencocokkan username (karena tidak dicek dalam login).
+3. "$hashed_password$" memastikan password cocok.
+Jika ditemukan, tampilkan "Login successful!", jika tidak, tampilkan "Invalid email or password!".
+
+
+3. terminal.sh (menu)
+<pre><code>
+echo "=== Arcaea System ==="
+echo "1. Register"
+echo "2. Login"
+echo "3. Exit"
+</code></pre>
+menampilkan menu
+
+<pre><code>
+read -p "Choose an option: " choice
+</code></pre>
+Meminta pengguna memilih opsi.
+
+<pre><code>
+case $choice in
+    1) ./scripts/register.sh ;;
+    2) ./scripts/login.sh ;;
+    3) exit 0 ;;
+    *) echo "Invalid option!" ;;
+esac
+</code></pre>
+Jika pengguna memilih:
+1. -> Jalankan register.sh.
+2. -> Jalankan login.sh.
+3. -> Keluar dari program.
+Selain itu -> Tampilkan pesan error "Invalid option!".
+    
 # Soal 3
 <pre><code>
 #!/bin/bash
 clear
 </code></pre>
+
 (#!/bin/bash) menentukan bahwa skrip dijalankan dengan Bash, sedangkan clear membersihkan layar terminal sebelum eksekusi.
 
 <pre><code>
