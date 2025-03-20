@@ -60,6 +60,8 @@ elif [ "$answer" == "$option3" ]; then
     }' data.txt
 </code></pre>
 
+Skrip di atas adalah bagian dari perintah shell yang menggunakan AWK untuk mencari pembaca dengan rating tertinggi dari file data.txt, yang diasumsikan berbentuk CSV dengan pemisah koma. Pertama, perintah awk -F',' digunakan untuk menetapkan koma sebagai pemisah kolom. Kemudian, baris pertama (header) dilewati dengan NR == 1 { next }. Selanjutnya, setiap baris dicek pada kolom ke-7 yang berisi rating. Jika rating tersebut lebih tinggi dari max_rating, maka nilai rating, nama pembaca (kolom ke-2), dan judul buku (kolom ke-3) diperbarui. Setelah semua data diproses, bagian END mencetak pembaca dengan rating tertinggi beserta bukunya. Jika tidak ada data valid, pesan "Tidak ada Data" akan ditampilkan.
+
 <pre><code>
 elif [ "$answer" == "$option4" ]; then
     awk -F',' '
