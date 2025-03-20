@@ -65,26 +65,39 @@ Skrip di atas adalah bagian dari perintah shell yang menggunakan AWK untuk menca
 <pre><code>
 elif [ "$answer" == "$option4" ]; then
     awk -F',' '
-    NR == 1 { next }  
-    $5 >= "2023" && $9 == "Asia" { genre_count[$4]++ }  
-    END { 
-        max_genre = ""; max_count = 0;
-        for (a in genre_count) { 
-            if (genre_count[a] > max_count) {
-                max_count = genre_count[a];
-                max_genre = a;
-            }
+NR == 1 { next }  
+
+{
+    split($5, date, "-");  
+    year = date[1] + 0;
+    month = date[2] + 0;
+    day = date[3] + 0;
+
+    if (year > 2023 && $9 == "Asia") {
+        genre_count[$4]++;
+    }
+}
+
+END { 
+    max_genre = ""; max_count = 0;
+    for (a in genre_count) { 
+        if (genre_count[a] > max_count) {
+            max_count = genre_count[a];
+            max_genre = a;
         }
-        if (max_count > 0) {
-            print "Genre paling populer di Asia setelah 2023 adalah", max_genre, "dengan", max_count, "buku.";
-        } else {
-            print "Tidak ada data genre.";
-        }
-    }' data.txt
+    }
+    
+    if (max_count > 0) {
+        print "Genre paling populer di Asia setelah 2023 adalah", max_genre, "dengan", max_count, "buku.";
+    } else {
+        print "Tidak ada data genre.";
+    }
+}' data.txt
 else
     echo "Pilihan tidak valid."
 fi
 </code></pre>
+Kode AWK ini membaca file CSV dengan pemisah koma (-F',') dan melewati baris pertama yang merupakan header. Setiap baris diproses dengan memisahkan kolom tanggal ($5) untuk mengambil tahun, lalu diperiksa apakah lebih besar dari 2023 dan wilayahnya Asia ($9 == "Asia"). Jika memenuhi syarat, jumlah buku untuk setiap genre ($4) dihitung dalam array genre_count. Setelah semua data diproses, bagian END mencari genre dengan jumlah terbanyak dan mencetaknya dalam format "Genre paling populer di Asia setelah 2023 adalah [genre] dengan [jumlah] buku." 
 
 # Soal 2
 1. register.sh (Registrasi Player)
