@@ -411,24 +411,41 @@ Merupakan kode untuk menjawab soal 4A yang dimana ingin menampilkan ringkasan da
 
 
 <pre><code>
-    --sort)
-        if [ -z "$3" ]; then
-            echo "Error: no sort column provided"
-            echo "Usage: ./pokemon_analysis.sh pokemon_usage.csv --sort <column>"
-            exit 1
-        fi
-        COLUMN=$3
-        echo "Sorting Pokémon by $COLUMN..."
-        head -n 1 "$FILENAME"
-        tail -n +2 "$FILENAME" | sort -t, -k2,2nr
-        ;;
-</pre></code>
-Merupakan kode untuk menjawab soal 4B yang dimana ingin mengurutkan pokemon berdasarkan kolom tertentu dengan command yang diakhiri (--sort).
-- Memeriksa apakah argumen kolom pengurutan ($3) disertakan. Jika tidak, ditampilkan error.
-- Menggunakan sort untuk mengurutkan Pokémon berdasarkan kolom yang diberikan.
-- head -n 1 digunakan untuk menampilkan header.
-- tail -n +2 digunakan untuk melewati header dan mengurutkan data berdasarkan kolom kedua dalam urutan menurun (descending) (-k2,2nr).
+   --sort)
+    if [ -z "$3" ]; then
+        echo "Error: no sort column provided"
+        echo "Usage: ./pokemon_analysis.sh pokemon_usage.csv --sort <column>"
+        exit 1
+    fi
+    COLUMN=$3
+    echo "Sorting Pokémon by $COLUMN..."
 
+    COL_NUM=$(awk -F',' -v col="$COLUMN" 'NR==1 {
+        for (i=1; i<=NF; i++) {
+            if ($i == col) print i
+        }
+    }' "$FILENAME")
+
+    if [ -z "$COL_NUM" ]; then
+        echo "Error: Column '$COLUMN' not found in dataset"
+        exit 1
+    fi
+
+    awk 'NR==1' "$FILENAME"
+    awk -F',' 'NR>1' "$FILENAME" | sort -t, -k"$COL_NUM","$COL_NUM"nr
+    ;;
+</pre></code>
+Code ini digunakan untuk mengurutkan data Pokémon berdasarkan kolom tertentu.
+- Mengecek apakah pengguna sudah memberikan nama kolom untuk sorting.
+Jika tidak ada, maka program akan menampilkan error dan memberikan petunjuk penggunaan.
+- Mencari indeks kolom berdasarkan nama yang diberikan.
+Menggunakan awk, program akan membaca baris pertama (header) untuk menemukan indeks kolom yang sesuai dengan nama yang diberikan oleh pengguna.
+- Memastikan apakah kolom yang diminta tersedia di dataset.
+Jika tidak ditemukan, program akan memberikan pesan error.
+- Mencetak header satu kali dan mengurutkan data.
+    awk 'NR==1' → Mencetak header terlebih dahulu.
+    awk -F',' 'NR>1' → Mengambil semua baris kecuali header.
+    sort -t, -k"$COL_NUM","$COL_NUM"nr → Mengurutkan secara numerik dari besar ke kecil (nr = numeric reverse).
 
 <pre><code>
         --grep)
@@ -451,21 +468,29 @@ Merupakan kode untuk menjawab soal 4C yang dimana ingin mencari pokemon berdasar
 
 <pre><code>
         --filter)
-        if [ -z "$3" ]; then
-            echo "Error: no filter option provided"
-            echo "Usage: ./pokemon_analysis.sh pokemon_usage.csv --filter <type>"
-            exit 1
-        fi
-        POKEMON_TYPE=$3
-        echo "Filtering Pokémon with Type '$POKEMON_TYPE'..."
-        head -n 1 "$FILENAME"
-        awk -F',' -v type="$POKEMON_TYPE" 'NR==1 || $4==type || $5==type' "$FILENAME" | sort -t, -k2,2nr
-        ;;
+    if [ -z "$3" ]; then
+        echo "Error: no filter option provided"
+        echo "Usage: ./pokemon_analysis.sh pokemon_usage.csv --filter <type>"
+        exit 1
+    fi
+    POKEMON_TYPE=$3
+    echo "Filtering Pokémon with Type '$POKEMON_TYPE'..."
+
+    awk -F',' -v type="$POKEMON_TYPE" '
+    BEGIN { IGNORECASE = 1 }
+    NR == 1 || $4 ~ ("^ *" type " *$") || $5 ~ ("^ *" type " *$") { 
+        print $0 
+    }' "$FILENAME"
+    ;;
 </pre></code>
-Merupakan kode untuk menjawab soal 4D yang dimana ingin menyaring pokemon berdasarkan tipe tertentu dengan command yang diakhiri (--filter).
-- Memeriksa apakah tipe Pokémon ($3) diberikan, jika tidak, menampilkan error.
-- awk digunakan untuk menampilkan Pokémon yang memiliki tipe sesuai dengan kolom ke-4 atau ke-5 dalam CSV.
-- Hasilnya diurutkan berdasarkan penggunaan tertinggi.
+Code ini digunakan untuk menampilkan Pokémon yang memiliki tipe tertentu (Type1 atau Type2).
+- Mengecek apakah pengguna sudah memberikan tipe Pokémon untuk filtering.
+Jika tidak, maka program akan menampilkan error dan memberikan petunjuk penggunaan.
+- Menggunakan awk untuk memfilter data berdasarkan tipe Pokémon.
+    - BEGIN { IGNORECASE = 1 } → Pencarian akan tidak case-sensitive, sehingga fire = Fire.
+    - NR == 1 → Selalu mencetak header.
+    - $4 ~ ("^ *" type " *$") || $5 ~ ("^ *" type " *$") →
+    - Jika Type1 atau Type2 sesuai dengan tipe yang diberikan, maka baris tersebut akan ditampilkan.
 
 
 <pre><code>
