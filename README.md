@@ -1,5 +1,89 @@
 # Soal 1
-0
+<pre><code>
+#!/bin/bash
+
+# Mengunduh file
+wget "https://drive.usercontent.google.com/u/0/uc?id=1l8fsj5LZLwXBlHaqhfJVjz_T0p7EJjqV&export=download" -O data.txt
+</code></pre>
+
+#!/bin/bash Menunjukkan bahwa skrip ini akan dijalankan menggunakan Bash.
+wget: Perintah untuk mengunduh file dari internet.
+-O data.txt: Menginstruksikan wget untuk menyimpan hasil unduhan dengan nama data.txt.
+
+<pre><code>
+# Deklarasi opsi
+option1="a"
+option2="b"
+option3="c"
+option4="d"
+
+# Meminta input dari user
+echo "Pilih a/b/c/d:"
+read answer
+</code></pre>
+Mendeklarasi opsi dan meminta output dari user.
+
+<pre><code>
+# Cek jawaban
+if [ "$answer" == "$option1" ]; then
+    awk '/Chris Hemsworth/ { ++n } 
+    END { print "Chris Hemsworth membaca", n, "kali." }' data.txt
+</code></pre>
+Kode berikut menggunakan perintah awk untuk menghitung berapa kali nama "Chris Hemsworth" muncul dalam sebuah file teks bernama data.txt. Perintah ini mencari setiap baris dalam file yang mengandung teks tersebut, lalu menambahkan nilai variabel n setiap kali ditemukan. Setelah semua baris diproses, perintah dalam blok END akan mencetak jumlah total kemunculan nama dalam format: "Chris Hemsworth membaca X kali.", di mana X adalah jumlah kemunculan yang ditemukan.
+<pre><code>
+elif [ "$answer" == "$option2" ]; then
+    awk -F',' '
+    BEGIN { total = 0; count = 0 }
+    $8 == "Tablet" { total += $6; count++ }
+    END { 
+        if (count > 0) 
+            print "Rata-rata durasi membaca dengan Tablet adalah", total / count, "menit."; 
+        else 
+            print "Tidak ada data membaca dengan Tablet.";
+    }' data.txt
+</code></pre>
+Perintah awk ini digunakan untuk menghitung rata-rata waktu membaca bagi pengguna yang menggunakan Tablet dari file data.txt, yang datanya dipisahkan dengan koma (,). Awalnya, variabel total dan count diset ke nol untuk menyimpan jumlah total durasi membaca dan jumlah pengguna yang memakai Tablet. Saat memproses setiap baris, jika kolom ke-8 berisi kata "Tablet", maka durasi membaca di kolom ke-6 akan ditambahkan ke total, dan count bertambah satu. Setelah semua data diproses, jika ada pengguna yang membaca dengan Tablet, perintah akan mencetak rata-rata waktu membaca. Namun, jika tidak ada data yang sesuai, akan muncul pesan bahwa tidak ada pengguna yang membaca dengan Tablet.
+<pre><code>
+elif [ "$answer" == "$option3" ]; then
+    awk -F',' '
+    NR == 1 { next }  # Lewati baris header jika ada
+    $7 > max_rating { 
+        max_rating = $7; 
+        name = $2; 
+        book = $3; 
+    }
+    END { 
+        if (max_rating > 0) 
+            print "Pembaca dengan rating tertinggi:", name, "-", book, "-", max_rating; 
+        else 
+            print "Tidak ada Data";
+    }' data.txt
+</code></pre>
+
+<pre><code>
+elif [ "$answer" == "$option4" ]; then
+    awk -F',' '
+    NR == 1 { next }  
+    $5 >= "2023" && $9 == "Asia" { genre_count[$4]++ }  
+    END { 
+        max_genre = ""; max_count = 0;
+        for (a in genre_count) { 
+            if (genre_count[a] > max_count) {
+                max_count = genre_count[a];
+                max_genre = a;
+            }
+        }
+        if (max_count > 0) {
+            print "Genre paling populer di Asia setelah 2023 adalah", max_genre, "dengan", max_count, "buku.";
+        } else {
+            print "Tidak ada data genre.";
+        }
+    }' data.txt
+else
+    echo "Pilihan tidak valid."
+fi
+</code></pre>
+
 # Soal 2
 1. register.sh (Registrasi Player)
    
