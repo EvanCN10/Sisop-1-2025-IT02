@@ -46,22 +46,32 @@ elif [ "$answer" == "$option3" ]; then
 
 elif [ "$answer" == "$option4" ]; then
     awk -F',' '
-    NR == 1 { next }  
-    $5 >= "2023" && $9 == "Asia" { genre_count[$4]++ }  
-    END { 
-        max_genre = ""; max_count = 0;
-        for (a in genre_count) { 
-            if (genre_count[a] > max_count) {
-                max_count = genre_count[a];
-                max_genre = a;
-            }
+NR == 1 { next }  
+
+{
+    split($5, date, "-");  
+    year = date[1] + 0;
+    month = date[2] + 0;
+    day = date[3] + 0;
+
+    if (year > 2023 && $9 == "Asia") {
+        genre_count[$4]++;
+    }
+}
+
+END { 
+    max_genre = ""; max_count = 0;
+    for (a in genre_count) { 
+        if (genre_count[a] > max_count) {
+            max_count = genre_count[a];
+            max_genre = a;
         }
-        if (max_count > 0) {
-            print "Genre paling populer di Asia setelah 2023 adalah", max_genre, "dengan", max_count, "buku.";
-        } else {
-            print "Tidak ada data genre.";
-        }
-    }' data.txt
-else
-    echo "Pilihan tidak valid."
+    }
+    
+    if (max_count > 0) {
+        print "Genre paling populer di Asia setelah 2023 adalah", max_genre, "dengan", max_count, "buku.";
+    } else {
+        print "Tidak ada data genre.";
+    }
+}' data.txt
 fi
