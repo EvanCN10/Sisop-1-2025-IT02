@@ -1,4 +1,4 @@
-#!/bin/bash
+=#!/bin/bash
 
 # Mengecek apakah file CSV sudah ada, jika tidak, unduh terlebih dahulu
 if [ ! -f "pokemon_usage.csv" ]; then
@@ -40,8 +40,22 @@ case "$COMMAND" in
         fi
         COLUMN=$3
         echo "Sorting Pokémon by $COLUMN..."
-        head -n 1 "$FILENAME"
-        tail -n +2 "$FILENAME" | sort -t, -k2,2nr
+
+        # Cari indeks kolom yang sesuai
+        COL_NUM=$(awk -F',' -v col="$COLUMN" 'NR==1 {
+            for (i=1; i<=NF; i++) {
+                if ($i == col) print i
+            }
+        }' "$FILENAME")
+
+        if [ -z "$COL_NUM" ]; then
+            echo "Error: Column '$COLUMN' not found in dataset"
+            exit 1
+        fi
+
+        # Cetak header satu kali, lalu sorting tanpa mencetak header dua kali
+        awk 'NR==1' "$FILENAME"
+        awk -F',' 'NR>1' "$FILENAME" | sort -t, -k"$COL_NUM","$COL_NUM"nr
         ;;
     
     --grep)
@@ -52,8 +66,7 @@ case "$COMMAND" in
         fi
         POKEMON_NAME=$3
         echo "Searching for Pokémon '$POKEMON_NAME'..."
-        head -n 1 "$FILENAME"
-        grep -i "^$POKEMON_NAME" "$FILENAME" | sort -t, -k2,2nr
+        awk -F',' -v name="$POKEMON_NAME" 'NR==1 || tolower($1) ~ tolower(name)' "$FILENAME"
         ;;
     
     --filter)
@@ -64,8 +77,12 @@ case "$COMMAND" in
         fi
         POKEMON_TYPE=$3
         echo "Filtering Pokémon with Type '$POKEMON_TYPE'..."
-        head -n 1 "$FILENAME"
-        awk -F',' -v type="$POKEMON_TYPE" 'NR==1 || $4==type || $5==type' "$FILENAME" | sort -t, -k2,2nr
+
+        awk -F',' -v type="$POKEMON_TYPE" '
+        BEGIN { IGNORECASE = 1 }  # Bikin pencarian tidak case-sensitive
+        NR == 1 || $4 ~ ("^ *" type " *$") || $5 ~ ("^ *" type " *$") { 
+            print $0 
+        }' "$FILENAME"
         ;;
     
     -h|--help)
@@ -95,3 +112,5 @@ case "$COMMAND" in
         exit 1
         ;;
 esac
+
+
