@@ -108,153 +108,162 @@ Kode AWK ini membaca file CSV dengan pemisah koma (-F',') dan melewati baris per
 (#!/bin/bash) Menunjukkan bahwa skrip ini akan dijalankan menggunakan Bash.
 
 <pre><code>
-DB_FILE="/data/player.csv"
+database="/home/binar/soal2/data/player.csv"
 </code></pre>
 Menentukan lokasi file database tempat semua "Player" akan disimpan.
 
 <pre><code>
-read -p "Enter email: " email
-read -p "Enter username: " username
-read -s -p "Enter password: " password
-</code></pre>
-read -p "..." variable : Membaca input pengguna.
--s untuk password menyembunyikan input agar tidak terlihat di layar.
-
-<pre><code>
-echo
-</code></pre>
-menambahkan baris kosong untuk meningkatkan keterbacaan output di terminal.
-
-Validasi Email
-<pre><code>
-if ! [[ "$email" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
-    echo "Invalid email format!"; exit 1
+echo "masukkan email: "
+read email
+if grep -q "^$email," "$database"; then
+    echo "email sudah terdaftar"
+    exit 1
+elif [[ $email =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
+    echo "email valid"
+else
+    echo "email invalid"
 fi
 </code></pre>
-Memeriksa apakah format email valid menggunakan regular expression (regex):
-1. Harus mengandung @ dan .
-2. Domain email minimal memiliki dua huruf setelah titik (.com, .id, dll.).
-Jika tidak valid, program menampilkan "Invalid email format!" lalu keluar (exit 1).
+meminta user untuk memberikan input email dengan format memiliki "@" dan ".".
 
-Validasi Password
 <pre><code>
-if [[ ${#password} -lt 8 || "$password" != *[a-z]* || "$password" != *[A-Z]* || "$password" != *[0-9]* ]]; then
-    echo "Password must be at least 8 characters, include uppercase, lowercase, and a number!"; exit 1
+if grep -q "^$email," "$database"; then
+    echo "email sudah terdaftar"
+    exit 1
 fi
 </code></pre>
-if [[ ... ]] melakukan pengecekan kondisi:
-1. ${#password} -lt 8 -> Password harus minimal 8 karakter.
-2. "$password" != *[a-z]* -> Harus mengandung huruf kecil.
-3. "$password" != *[A-Z]* -> Harus mengandung huruf besar.
-4. "$password" != *[0-9]* -> Harus mengandung angka.
-Jika tidak memenuhi kriteria, tampilkan pesan error dan keluar.
+mengecek apakah input email sudah terdaftar di dalam database.
 
-Cek Apakah Email Sudah Terdaftar
-<pre><code>
-if grep -q "^$email," "$DB_FILE"; then
-    echo "Email already registered!"; exit 1
+<code><pre>
+echo " "
+echo "masukkan username: "
+read username
+</code></pre>
+meminta user untuk memberikan input user.
+
+<code><pre>
+echo " "
+echo "masukkan password (gunakan min. 8 char, kapital, angka): "
+read -s password
+if [[ $password =~ [A-Z] && $password =~ [a-z] && $password =~ [0-9] && ${#password} -ge 8 ]]; then
+    echo "password valid"
+else
+    echo "password invalid"
+    exit 1
 fi
 </code></pre>
-1. grep -q "^$email," "$DB_FILE"  Mencari apakah email sudah ada di database (player.csv).
-2. ^ menandakan pencarian dari awal baris.
-3. Jika sudah ada, program menampilkan "Email already registered!" lalu keluar.
+meminta user untuk memberikan input password dengan format minimal 8 karakter, huruf kapital, dan angka.
+"-s" digunakan agar input tidak terlihat.
 
-Hashing Password dan Menyimpan ke Database
-<pre><code>
-echo "$email,$username,$(echo -n "$password:salt123" | sha256sum | awk '{print $1}')" >> "$DB_FILE"
+<code><pre>
+salt="1234"
+hashed_password=$(echo -n "$salt$password" | sha256sum | awk '{print $1}')
+password=$hashed_password
 </code></pre>
-Hashing password menggunakan SHA-256 dengan static salt (salt123):
-1. echo -n "$password:salt123" | sha256sum | awk '{print $1}'
-2. -n mencegah tambahan newline.
-3. sha256sum mengenkripsi password.
-4. awk '{print $1}' hanya mengambil hash (tanpa tanda - tambahan).
+hash password dengan algoritma hashing sha256sum yang memakai static salt.
 
-<pre><code>
-email,username,hashed_password
+<code><pre>
+echo " " 
+echo "$email,$username,$password" >> $database
+echo "selamat datang $username"
 </code></pre>
-Format penyimpanan ke database
+memasukkan input email, username, dan password ke dalam database serta memberikan sambutan kepada player/user.
 
-<pre><code>
->> "$DB_FILE" 
-</code></pre>
-Menambahkan data ke akhir file tanpa menghapus data lama.
+2. login.sh (login player)
 
-<pre><code>
-echo "Registration successful!"
-</code></pre>
-Memberi konfirmasi bahwa registrasi berhasil.
-
-
-2. login.sh (Login Player)
 <pre><code>
 #!/bin/bash
 </code></pre>
-menandakan bahwa ini adalah skrip Bash.
+(#!/bin/bash) Menunjukkan bahwa skrip ini akan dijalankan menggunakan Bash.
 
-<pre><code>
-DB_FILE="/data/player.csv"
+<code><pre>
+database="/home/binar/soal2/data/player.csv"
 </code></pre>
-Menentukan lokasi file database.
+Menentukan lokasi file database tempat semua "Player" akan disimpan.
 
-<pre><code>
-read -p "Enter email: " email
-read -s -p "Enter password: " password
-</code></pre>
-Meminta pengguna memasukkan email dan password.
--s menyembunyikan input password.
-
-<pre><code>
-echo
-</code></pre>
-Menambahkan baris kosong untuk tampilan yang lebih rapi.
-
-<pre><code>
-hashed_password=$(echo -n "$password:salt123" | sha256sum | awk '{print $1}')
-</code></pre>
-Hashing password input dengan metode yang sama seperti saat registrasi.
-
-Cek Kredensial di Database
-<pre><code>
-if grep -q "^$email,.*,$hashed_password$" "$DB_FILE"; then
-    echo "Login successful!"
-else
-    echo "Invalid email or password!"
+<code><pre>
+echo "masukkan email: "
+read email
+if ! grep -q "^$email," /home/binar/soal2/data/player.csv; then
+    echo "email tidak terdaftar"
+    exit 1
 fi
 </code></pre>
-grep -q "^$email,.*,$hashed_password$" "$DB_FILE":
-1. Mencari email yang cocok.
-2. .* mencocokkan username (karena tidak dicek dalam login).
-3. "$hashed_password$" memastikan password cocok.
-Jika ditemukan, tampilkan "Login successful!", jika tidak, tampilkan "Invalid email or password!".
+meminta user untuk memberikan input email kemudian mengecek apakah email yang dimasukkan ada dalam database.
 
-
-3. terminal.sh (menu)
-<pre><code>
-echo "=== Arcaea System ==="
-echo "1. Register"
-echo "2. Login"
-echo "3. Exit"
+<code><pre>
+echo " "
+echo "masukkan password: "
+read -s password
 </code></pre>
-menampilkan menu
+meminta user untuk memasukkan input password. "-s" digunakan agar input tidak terlihat.
 
-<pre><code>
-read -p "Choose an option: " choice
+<code><pre>
+salt="1234"
+hashed_password=$(echo -n "$salt$password" | sha256sum | awk '{print $1}')
 </code></pre>
-Meminta pengguna memilih opsi.
+hash password dengan algoritma hashing sha256sum yang memakai static salt.
 
-<pre><code>
-case $choice in
-    1) ./scripts/register.sh ;;
-    2) ./scripts/login.sh ;;
-    3) exit 0 ;;
-    *) echo "Invalid option!" ;;
-esac
+<code><pre>
+if grep -q "^$email,.*,${hashed_password}$" "$database"; then
+    username=$(grep "^$email," "$database" | awk -F',' '{print $2}')
+    echo "Login sukses!"
+    echo "selamat datang $username"
+else
+    echo "Invalid email atau password!"
+    exit 1
+fi
 </code></pre>
-Jika pengguna memilih:
-1. -> Jalankan register.sh.
-2. -> Jalankan login.sh.
-3. -> Keluar dari program.
-Selain itu -> Tampilkan pesan error "Invalid option!".
+mengecek apakah input yang diberikan sama dengan yang ada pada database.
+
+3. terminal.sh
+
+<code><pre>
+echo "Menu: "
+echo "1. register"
+echo "2. login"
+echo "3. exit"
+</code></pre>
+untuk menampilkan menu.
+
+<code><pre>
+read -p "pilih menu: " pilih
+
+if [ "$pilih" = "1" ]; then
+	./register.sh
+elif [ "$pilih" = "2" ]; then
+	./login.sh
+elif [ "$pilih" = "3" ]; then
+	exit 0
+else 
+	echo "menu invalid"
+fi
+</code></pre>
+meminta user untuk menginput pilihan menu.
+
+<code><pre>
+if [ "$pilih" = "1" ]; then
+	./register.sh
+</code></pre>
+apabila user memasukkan input "1" maka register.sh akan dijalankan.
+
+<code><pre>
+elif [ "$pilih" = "2" ]; then
+	./login.sh
+</code></pre>
+apabila user memasukkan input "2" maka login.sh akan dijalankan.
+
+<code><pre>
+elif [ "$pilih" = "3" ]; then
+	exit 0
+</code></pre>
+apabila user memasukkan input "3" maka program akan selesai.
+
+<code><pre>
+else 
+	echo "menu invalid"
+</code></pre>
+apabila user memasukkan input "4" maka program akan memberitahu user bahwa apa yang diinput invalid.
     
 # Soal 3
 <pre><code>
