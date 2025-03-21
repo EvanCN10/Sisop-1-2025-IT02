@@ -1,11 +1,20 @@
-echo "=== Arcaea System ==="
-echo "1. Register"
-echo "2. Login"
-echo "3. Exit"
-read -p "Choose an option: " choice
-case $choice in
-    1) ./scripts/register.sh ;;
-    2) ./scripts/login.sh ;;
-    3) exit 0 ;;
-    *) echo "Invalid option!" ;;
-esac
+#!/bin/bash
+
+echo "Menu: "
+echo "1. register"
+echo "2. login"
+echo "3. exit"
+
+read -p "pilih menu: " pilih
+
+if [ "$pilih" = "1" ]; then
+	./register.sh
+elif [ "$pilih" = "2" ]; then
+	./login.sh
+elif [ "$pilih" = "3" ]; then
+	exit 0
+else 
+	echo "menu invalid"
+fi
+
+
