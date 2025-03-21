@@ -9,6 +9,7 @@ if ! grep -q "^$email," /home/binar/soal2/data/player.csv; then
     exit 1
 fi
 
+echo " "
 echo "masukkan password: "
 read -s password
 
