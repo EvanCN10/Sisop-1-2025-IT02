@@ -1,15 +1,25 @@
-cat << 'EOF' > ./scripts/login.sh
 #!/bin/bash
-DB_FILE="./data/player.csv"
 
-read -p "Enter email: " email
-read -s -p "Enter password: " password
+database="/home/binar/soal2/data/player.csv"
 
-hashed_password=$(echo -n "$password:salt123" | sha256sum | awk '{print $1}')
-
-if grep -q "^$email,.*,${hashed_password}$" "$DB_FILE"; then
-    echo "Login successful!"
-else
-    echo "Invalid email or password!"
+echo "masukkan email: "
+read email
+if ! grep -q "^$email," /home/binar/soal2/data/player.csv; then
+    echo "email tidak terdaftar"
+    exit 1
 fi
-EOF
+
+echo "masukkan password: "
+read -s password
+
+salt="1234"
+hashed_password=$(echo -n "$salt$password" | sha256sum | awk '{print $1}')
+
+if grep -q "^$email,.*,${hashed_password}$" "$database"; then
+    username=$(grep "^$email," "$database" | awk -F',' '{print $2}')
+    echo "Login sukses!"
+    echo "selamat datang $username"
+else
+    echo "Invalid email atau password!"
+    exit 1
+fi
